@@ -32,3 +32,18 @@ type User struct {
 	Type  string `json:"type"`
 	URL   string `json:"url"`
 }
+
+
+type PullRequestReviewEventPayload struct {
+	Action      string      `json:"action"`
+	Review      Review      `json:"review"`
+	PullRequest PullRequest `json:"pull_request"`
+	Repository  Repository  `json:"repository"`
+}
+
+type Review struct {
+	ID     int    `json:"id"`
+	State  string `json:"state"`
+	Body   string `json:"body"`
+	User   User   `json:"user"`
+}
