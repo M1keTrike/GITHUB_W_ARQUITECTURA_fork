@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"github_wb/application"
+
 	"log"
 	"net/http"
 
@@ -12,6 +13,8 @@ func PullRequestEvent(ctx *gin.Context) {
 	eventType := ctx.GetHeader("X-GitHub-Event")
 	deliveryID := ctx.GetHeader("X-GitHub-Delivery")
 	signature := ctx.GetHeader("X-Hub-Signature-256")
+	sendHandler := NewSendHandler()
+	discordUseCase := application.NewUseCaseSendToDiscord(sendHandler)
 
 	log.Println(signature)
 
@@ -26,15 +29,17 @@ func PullRequestEvent(ctx *gin.Context) {
 	}
 
 	var statusCode int
+	var message string
 
 	switch eventType {
 	case "pull_request":
-		statusCode = application.ProcessPullRequest(payload)
+		statusCode, message = application.ProcessPullRequest(payload)
 	}
 
 	switch statusCode {
 	case 200:
 		ctx.JSON(http.StatusOK, gin.H{"status": "Evento Pull Request recibido y procesado"})
+		discordUseCase.Execute(message)
 	case 500:
 		log.Printf("Error al deserializar el payload del pull request: %v", err)
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Error al procesar el payload del pull request"})
